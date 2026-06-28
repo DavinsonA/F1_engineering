@@ -37,6 +37,9 @@ class OpenF1Client:
                 detail = response.json().get("detail", "401 Unauthorized")
                 raise LiveSessionBlocked(detail)
 
+            if response.status_code == 404:
+                return []
+
             if response.status_code == 429 or response.status_code >= 500:
                 if attempt == self._max_retries:
                     response.raise_for_status()
