@@ -92,27 +92,46 @@ El proyecto usa [uv](https://docs.astral.sh/uv/) para gestionar el entorno y las
 git clone <url-del-repo>
 cd f1_engineering
 
-# 2. Crear el entorno virtual
-uv venv
-
-# 3. Instalar dependencias
-uv pip install -r requirements.txt
+# 2. Crear el entorno e instalar dependencias
+uv sync
 ```
+
+> **Alternativa** sin `uv sync` (usando el `requirements.txt`):
+> ```bash
+> uv venv
+> uv pip install -r requirements.txt
+> ```
 
 ---
 
 ## Uso
 
-**Meta a futuro:** ejecutar todo el pipeline con dos comandos.
+### Extracción de la capa Bronze
 
 ```bash
-uv sync
-uv run main.py
+uv run main.py          # extrae la temporada 2024 (por defecto)
+uv run main.py 2023     # extrae otra temporada
 ```
 
-> Aún no está disponible: falta el `main.py` orquestador (y migrar las dependencias a `pyproject.toml` para `uv sync`). Es el norte hacia el que apunta el proyecto.
+Descarga desde OpenF1 los catálogos (`meetings`, `drivers`, `sessions`, ...) y, por cada sesión, los endpoints de detalle (`laps`, `pit`, `stints`, `weather`, ...), guardándolos particionados en `data/bronze/`:
 
-**Hoy** el flujo de la capa Bronze vive en el notebook:
+```text
+data/bronze/laps/year=2024/session_key=9839/data.parquet
+```
+
+- **Idempotente:** si una sesión ya fue descargada, se salta. Puedes cortar con `Ctrl+C` y al re-ejecutar retoma donde quedó.
+- **Rate limit:** el cliente respeta el límite de OpenF1 (~25 req/min), así que una temporada completa puede tardar varios minutos.
+- Si hay una **sesión de F1 en vivo**, la API bloquea el acceso y el script lo informa sin fallar (ver la nota de bloqueo en [Fuente de datos](#fuente-de-datos-openf1)).
+
+> **Meta a futuro:** que `main.py` orqueste todo el pipeline (Bronze → Silver → Gold). Hoy ejecuta solo la capa Bronze.
+
+### Exploración
+
+El notebook [`notebooks/conexion_api.ipynb`](notebooks/conexion_api.ipynb) queda como espacio de exploración rápida de la API:
+
+```bash
+uv run jupyter lab
+```
 
 
 ---
