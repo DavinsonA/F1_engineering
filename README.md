@@ -6,17 +6,6 @@ El objetivo no es montar una solución empresarial, sino aprender de forma orden
 
 ---
 
-## Estado actual
-
-El proyecto está en su **fase inicial**. Lo que existe hoy:
-
-- ✅ Estructura de carpetas del repositorio.
-- ✅ **Prototipo de la capa Bronze** en un notebook ([`notebooks/conexion_api.ipynb`](notebooks/conexion_api.ipynb)): se conecta a OpenF1, descarga varios endpoints y los guarda como Parquet en `data/bronze/`.
-- ⬜ Script de extracción Bronze en `src/` (siguiente paso).
-- ⬜ Capas Silver y Gold, calidad, dashboard y modelo predictivo (planeado, ver [Roadmap](#roadmap)).
-
----
-
 ## Arquitectura (Medallion)
 
 Los datos fluyen por capas, cada una más procesada que la anterior:
@@ -96,49 +85,35 @@ f1_engineering/
 
 - **Python 3.13+**
 
+El proyecto usa [uv](https://docs.astral.sh/uv/) para gestionar el entorno y las dependencias.
+
 ```bash
 # 1. Clonar
 git clone <url-del-repo>
 cd f1_engineering
 
-# 2. (Recomendado) crear y activar un entorno virtual
-python -m venv .venv
-.venv\Scripts\activate        # Windows
-# source .venv/bin/activate   # Linux / macOS
+# 2. Crear el entorno virtual
+uv venv
 
 # 3. Instalar dependencias
-pip install -r requirements.txt
+uv pip install -r requirements.txt
 ```
 
 ---
 
 ## Uso
 
-Por ahora el flujo de la capa Bronze vive en el notebook:
+**Meta a futuro:** ejecutar todo el pipeline con dos comandos.
 
 ```bash
-jupyter lab    # o: jupyter notebook
+uv sync
+uv run main.py
 ```
 
-Abre [`notebooks/conexion_api.ipynb`](notebooks/conexion_api.ipynb) y ejecuta las celdas de arriba a abajo. Si **no** hay una sesión de F1 en vivo, descargará los endpoints y guardará los Parquet en `data/bronze/`.
+> Aún no está disponible: falta el `main.py` orquestador (y migrar las dependencias a `pyproject.toml` para `uv sync`). Es el norte hacia el que apunta el proyecto.
 
-> Si ves mensajes con `{'detail': 'Live F1 session in progress...'}`, la API está bloqueada en este momento (ver [nota de bloqueo](#️-nota-importante-bloqueo-durante-sesiones-en-vivo)). Espera a que termine la sesión y vuelve a ejecutar.
+**Hoy** el flujo de la capa Bronze vive en el notebook:
 
----
-
-## Roadmap
-
-El proyecto avanza por fases, de lo simple a lo complejo:
-
-| Fase | Objetivo | Estado |
-|---|---|---|
-| 1 | Exploración de OpenF1 y prototipo Bronze | 🟡 En curso |
-| 2 | Cliente API reutilizable + script de extracción Bronze | ⬜ Siguiente |
-| 3 | Capa Silver (limpieza y normalización) | ⬜ |
-| 4 | Capa Gold (modelo dimensional, métricas) | ⬜ |
-| 5 | Dashboard histórico | ⬜ |
-| 6 | Replay semi-live | ⬜ |
-| 7 | Modelo predictivo baseline (podio / puntos) | ⬜ |
 
 ---
 
@@ -147,6 +122,7 @@ El proyecto avanza por fases, de lo simple a lo complejo:
 | Capa | Herramienta |
 |---|---|
 | Lenguaje | Python |
+| Entorno y dependencias | uv |
 | Cliente API | httpx |
 | DataFrames | pandas (→ Polars en fases siguientes) |
 | Almacenamiento | Parquet (pyarrow) |
