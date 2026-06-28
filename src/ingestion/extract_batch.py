@@ -4,12 +4,15 @@ from src.ingestion.openf1_client import LiveSessionBlocked, OpenF1Client
 from src.utils.paths import BRONZE
 
 CATALOG_ENDPOINTS = ["meetings", "drivers", "championship_drivers"]
-SESSION_ENDPOINTS = ["laps", "pit", "stints", "weather", "race_control", "session_result"]
+SESSION_ENDPOINTS = ["laps", "pit", "stints", "weather", "race_control", "session_result", "team_radio"]
 
 
 def _save(data, path):
+    df = pd.DataFrame(data)
+    obj_cols = df.select_dtypes(include="object").columns
+    df[obj_cols] = df[obj_cols].astype("string")
     path.parent.mkdir(parents=True, exist_ok=True)
-    pd.DataFrame(data).to_parquet(path, index=False)
+    df.to_parquet(path, index=False)
 
 
 def extract_catalog(client, endpoint):
@@ -27,7 +30,7 @@ def extract_session(client, endpoint, session_key, year):
     return True
 
 
-def run(year=None):
+def run(years=None):
     try:
         with OpenF1Client() as client:
             for endpoint in CATALOG_ENDPOINTS:
@@ -37,8 +40,8 @@ def run(year=None):
             sessions = pd.DataFrame(extract_catalog(client, "sessions"))
             print(f"[catalog] sessions: {len(sessions)} filas")
 
-            if year is not None:
-                sessions = sessions[sessions["year"] == year]
+            if years:
+                sessions = sessions[sessions["year"].isin(years)]
 
             for row in sessions.itertuples():
                 print(f"[session {row.session_key}] year={row.year}")
